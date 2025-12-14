@@ -103,7 +103,15 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
         return;
       }
       
-      console.log('OTP verified, session:', verifyData);
+      console.log('OTP verified:', verifyData);
+      
+      // If we got a session, set it
+      if (verifyData.session) {
+        const { error: sessionError } = await supabase.auth.setSession(verifyData.session);
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+        }
+      }
       
       // Update password with the new session
       const { error } = await supabase.auth.updateUser({ password: password });
