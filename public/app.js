@@ -26,26 +26,33 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    // Get the full URL
-    const fullUrl = window.location.href;
-    console.log('Full URL:', fullUrl);
+    // Extract access_token and type from URL
+    const url = new URL(window.location.href);
+    const accessToken = url.searchParams.get('access_token');
+    const type = url.searchParams.get('type');
     
-    // Try to exchange the code for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(fullUrl);
+    console.log('Access Token:', accessToken);
+    console.log('Type:', type);
+    
+    if (!accessToken) {
+      console.log('No access token found - user can still reset password manually');
+      return;
+    }
+    
+    // Set the session directly with the access token
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: accessToken
+    });
     
     if (error) {
-      console.error('Error exchanging code:', error);
-      // If it fails due to missing code_verifier, the user can still enter their new password manually
-      // This allows recovery even if the PKCE flow has issues
-      console.log('Note: You can still reset your password manually below');
+      console.error('Error setting session:', error);
       return;
     }
     
     console.log('Session established:', data);
-    // Session is now established, allow user to reset password
   } catch (err) {
     console.error('Exception:', err);
-    // Don't show error here - allow user to continue
   }
 }
 
@@ -119,6 +126,8 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
+
+
 
 
 
