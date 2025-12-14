@@ -26,7 +26,11 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+    // Extract the full URL to exchange for session
+    const fullUrl = window.location.href;
+    console.log('Exchange URL:', fullUrl);
+    
+    const { data, error } = await supabase.auth.exchangeCodeForSession(fullUrl);
     
     if (error) {
       console.error('Error exchanging code:', error);
