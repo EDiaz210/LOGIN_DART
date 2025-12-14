@@ -1,13 +1,13 @@
 let supabase;
 
-// Initialize Supabase client with env variables from server
+// Initialize Supabase client with hardcoded values (from environment variables in Vercel)
 async function initializeSupabase() {
   try {
-    const response = await fetch('/api/config');
-    const config = await response.json();
+    const SUPABASE_URL = 'https://lnvevruftnmfmaswszvv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JnadYW9Wqs441mZjNLaJSA_9XKgUnQx';
     
     const { createClient } = window.supabase;
-    supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized');
     
     // Exchange code for session when redirected from email
@@ -112,5 +112,6 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
+
 
 
