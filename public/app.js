@@ -26,31 +26,21 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    // Extract access_token and type from URL
+    // Extract access_token from URL
     const url = new URL(window.location.href);
     const accessToken = url.searchParams.get('access_token');
-    const type = url.searchParams.get('type');
     
-    console.log('Access Token:', accessToken);
-    console.log('Type:', type);
+    console.log('Access Token from URL:', accessToken);
     
     if (!accessToken) {
-      console.log('No access token found - user can still reset password manually');
+      console.log('No access token - user can reset password manually');
       return;
     }
     
-    // Set the session directly with the access token
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: accessToken
-    });
+    // Store the token for later use in password reset
+    window.resetToken = accessToken;
+    console.log('Reset token stored for password update');
     
-    if (error) {
-      console.error('Error setting session:', error);
-      return;
-    }
-    
-    console.log('Session established:', data);
   } catch (err) {
     console.error('Exception:', err);
   }
@@ -93,18 +83,26 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
   btnLoader.style.display = 'inline-block';
   
   try {
-    const { data, error } = await supabase.auth.updateUser({ password: password });
-    
-    if (error) {
-      showError('Error al actualizar la contraseña: ' + error.message);
-    } else {
-      showSuccess('¡Contraseña actualizada correctamente! Puedes cerrar esta ventana.');
-      document.getElementById('resetForm').reset();
+    // If we have a reset token, use it to update password
+    if (window.resetToken) {
+      const { data, error } = await supabase.auth.updateUser(
+        { password: password },
+        { accessToken: window.resetToken }
+      );
       
-      // Close window after 3 seconds
-      setTimeout(() => {
-        window.close();
-      }, 3000);
+      if (error) {
+        showError('Error al actualizar la contraseña: ' + error.message);
+      } else {
+        showSuccess('¡Contraseña actualizada correctamente! Puedes cerrar esta ventana.');
+        document.getElementById('resetForm').reset();
+        
+        // Close window after 3 seconds
+        setTimeout(() => {
+          window.close();
+        }, 3000);
+      }
+    } else {
+      showError('No hay sesión activa. Por favor, intenta nuevamente con el enlace del email.');
     }
   } catch (err) {
     showError('Error: ' + err.message);
@@ -126,6 +124,7 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
+
 
 
 
