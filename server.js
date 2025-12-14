@@ -1,7 +1,6 @@
 console.log('=== STARTING APP ===');
 
 try {
-  require('dotenv').config();
   const express = require('express');
   console.log('Express loaded OK');
   
@@ -19,8 +18,8 @@ try {
   // Endpoint to provide environment variables to client
   app.get('/api/config', (req, res) => {
     res.json({
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+      supabaseUrl: process.env.SUPABASE_URL || 'https://lnvevruftnmfmaswszvv.supabase.co',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || 'sb_publishable_JnadYW9Wqs441mZjNLaJSA_9XKgUnQx'
     });
   });
   
@@ -32,9 +31,14 @@ try {
     res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
   });
   
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('=== SERVER RUNNING ON PORT', PORT, '===');
-  });
+  // For local development
+  if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('=== SERVER RUNNING ON PORT', PORT, '===');
+    });
+  }
+  
+  module.exports = app;
   
 } catch (error) {
   console.log('=== ERROR ===');
