@@ -29,17 +29,19 @@ async function exchangeCodeForSession() {
     // Extract access_token from URL
     const url = new URL(window.location.href);
     const accessToken = url.searchParams.get('access_token');
+    const type = url.searchParams.get('type');
     
-    console.log('Access Token from URL:', accessToken);
+    console.log('Access Token:', accessToken);
+    console.log('Type:', type);
     
     if (!accessToken) {
       console.log('No access token - user can reset password manually');
       return;
     }
     
-    // Store the token for later use in password reset
+    // Store the token for later use
     window.resetToken = accessToken;
-    console.log('Reset token stored for password update');
+    console.log('Reset token stored');
     
   } catch (err) {
     console.error('Exception:', err);
@@ -83,22 +85,21 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
   btnLoader.style.display = 'inline-block';
   
   try {
-    // If we have a reset token, establish session first
+    // If we have a reset token, set session and update password
     if (window.resetToken) {
-      // Set the session with the access token
+      // Set session with the token
       const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
         access_token: window.resetToken,
-        refresh_token: window.resetToken
+        refresh_token: ''
       });
       
       if (sessionError) {
-        console.error('Error setting session:', sessionError);
-        showError('Error al establecer la sesión: ' + sessionError.message);
-        return;
+        console.error('Session error:', sessionError);
+        // Try anyway
       }
       
-      // Now update the password
-      const { data, error } = await supabase.auth.updateUser({ password: password });
+      // Update password
+      const { error } = await supabase.auth.updateUser({ password: password });
       
       if (error) {
         showError('Error al actualizar la contraseña: ' + error.message);
@@ -106,13 +107,12 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
         showSuccess('¡Contraseña actualizada correctamente! Puedes cerrar esta ventana.');
         document.getElementById('resetForm').reset();
         
-        // Close window after 3 seconds
         setTimeout(() => {
           window.close();
         }, 3000);
       }
     } else {
-      showError('No hay sesión activa. Por favor, intenta nuevamente con el enlace del email.');
+      showError('No hay token. Por favor, intenta nuevamente con el enlace del email.');
     }
   } catch (err) {
     showError('Error: ' + err.message);
@@ -134,10 +134,6 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
-
-
-
-
 
 
 
