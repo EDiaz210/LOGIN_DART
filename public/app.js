@@ -83,12 +83,22 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
   btnLoader.style.display = 'inline-block';
   
   try {
-    // If we have a reset token, use it to update password
+    // If we have a reset token, establish session first
     if (window.resetToken) {
-      const { data, error } = await supabase.auth.updateUser(
-        { password: password },
-        { accessToken: window.resetToken }
-      );
+      // Set the session with the access token
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: window.resetToken,
+        refresh_token: window.resetToken
+      });
+      
+      if (sessionError) {
+        console.error('Error setting session:', sessionError);
+        showError('Error al establecer la sesión: ' + sessionError.message);
+        return;
+      }
+      
+      // Now update the password
+      const { data, error } = await supabase.auth.updateUser({ password: password });
       
       if (error) {
         showError('Error al actualizar la contraseña: ' + error.message);
@@ -124,6 +134,8 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
+
+
 
 
 
