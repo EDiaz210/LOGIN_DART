@@ -1,6 +1,7 @@
 console.log('=== STARTING APP ===');
 
 try {
+  require('dotenv').config();
   const express = require('express');
   console.log('Express loaded OK');
   
@@ -14,6 +15,14 @@ try {
   console.log('Public path:', path.join(__dirname, 'public'));
   
   app.use(express.static(path.join(__dirname, 'public')));
+  
+  // Endpoint to provide environment variables to client
+  app.get('/api/config', (req, res) => {
+    res.json({
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+    });
+  });
   
   app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
