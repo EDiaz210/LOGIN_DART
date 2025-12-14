@@ -26,12 +26,14 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    // Extract access_token from URL
+    // Extract access_token and email from URL
     const url = new URL(window.location.href);
     const accessToken = url.searchParams.get('access_token');
+    const email = url.searchParams.get('email');
     const type = url.searchParams.get('type');
     
     console.log('Access Token:', accessToken);
+    console.log('Email:', email);
     console.log('Type:', type);
     
     if (!accessToken) {
@@ -39,9 +41,10 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    // Store the token for later use
+    // Store the token and email for later use
     window.resetToken = accessToken;
-    console.log('Reset token stored');
+    window.resetEmail = email;
+    console.log('Reset token and email stored');
     
   } catch (err) {
     console.error('Exception:', err);
@@ -85,17 +88,18 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
   btnLoader.style.display = 'inline-block';
   
   try {
-    // If we have a reset token, verify it and update password
-    if (window.resetToken) {
-      // For recovery type OTP, verify without email
+    // If we have a reset token and email, verify and update password
+    if (window.resetToken && window.resetEmail) {
+      // Verify OTP with email and token
       const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         type: 'recovery',
-        token: window.resetToken
+        token: window.resetToken,
+        email: window.resetEmail
       });
       
       if (verifyError) {
         console.error('Verify error:', verifyError);
-        showError('Error al verificar el token: ' + verifyError.message);
+        showError('Error al verificar: ' + verifyError.message);
         return;
       }
       
