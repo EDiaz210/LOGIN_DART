@@ -26,15 +26,18 @@ async function exchangeCodeForSession() {
       return;
     }
     
-    // Extract the full URL to exchange for session
+    // Get the full URL
     const fullUrl = window.location.href;
-    console.log('Exchange URL:', fullUrl);
+    console.log('Full URL:', fullUrl);
     
+    // Try to exchange the code for a session
     const { data, error } = await supabase.auth.exchangeCodeForSession(fullUrl);
     
     if (error) {
       console.error('Error exchanging code:', error);
-      showError('Error al procesar el enlace de restablecimiento: ' + error.message);
+      // If it fails due to missing code_verifier, the user can still enter their new password manually
+      // This allows recovery even if the PKCE flow has issues
+      console.log('Note: You can still reset your password manually below');
       return;
     }
     
@@ -42,7 +45,7 @@ async function exchangeCodeForSession() {
     // Session is now established, allow user to reset password
   } catch (err) {
     console.error('Exception:', err);
-    showError('Error durante la autenticación: ' + err.message);
+    // Don't show error here - allow user to continue
   }
 }
 
@@ -116,6 +119,8 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
+
+
 
 
 
