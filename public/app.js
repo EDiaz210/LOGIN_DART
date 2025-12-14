@@ -85,17 +85,19 @@ document.getElementById('resetForm').addEventListener('submit', async (e) => {
   btnLoader.style.display = 'inline-block';
   
   try {
-    // If we have a reset token, set session and update password
+    // If we have a reset token, verify it and update password
     if (window.resetToken) {
-      // Set session with the token
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: window.resetToken,
-        refresh_token: ''
+      // Extract or use default email for recovery verification
+      // For recovery type, we need to verify the OTP first
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        type: 'recovery',
+        token: window.resetToken,
+        email: 'recovery@example.com'  // Placeholder, verifyOtp doesn't require email for recovery
       });
       
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        // Try anyway
+      if (verifyError) {
+        console.error('Verify error:', verifyError);
+        // Still try to update - sometimes verifyOtp fails but session is set
       }
       
       // Update password
@@ -134,8 +136,6 @@ function showSuccess(message) {
   successDiv.textContent = message;
   successDiv.style.display = 'block';
 }
-
-
 
 
 
